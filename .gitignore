@@ -1,0 +1,4 @@
+.idea
+auDeep.egg-info
+build/
+/samples/*/

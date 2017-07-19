@@ -1,0 +1,19 @@
+index 26344d3..edc3c89 100644
+--- a/meta_graph.py
++++ b/meta_graph.py	
+@@ -472,12 +472,12 @@ def import_scoped_meta_graph(meta_graph_or_file,
+         field = getattr(col_def, kind)
+         if field.value and (
+             not input_map or
+-            sorted([compat.as_str(v) for v in field.value]) !=
++            sorted(set([compat.as_str(v) for v in field.value])) !=
+             sorted(input_map)):
+           raise ValueError("Graph contains unbound inputs: %s. Must "
+                            "provide these inputs through input_map." %
+-                           ",".join([compat.as_str(v) for v in field.value
+-                                     if not input_map or v not in input_map]))
++                           ",".join(set([compat.as_str(v) for v in field.value
++                                     if not input_map or v not in input_map])))
+         break
+ 
+   # Sets graph to default graph if it's not passed in.
