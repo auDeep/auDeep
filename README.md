@@ -1,5 +1,12 @@
 **auDeep** is a Python toolkit for unsupervised feature learning with deep neural networks (DNNs). Currently, the main focus of this project is feature extraction from audio data with deep recurrent autoencoders. However, the core feature learning algorithms are not limited to audio data. Furthermore, we plan on implementing additional DNN-based feature learning approaches.
 
+(c) 2017 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau
+Published under GPLv3, see the LICENSE.md file for details.
+
+# Citing
+If you use auDeep or any code from auDeep in your research work, you are kindly asked to acknowledge the use of auDeep in your publications.
+> M. Freitag, S. Amiriparian, S. Pugachevskiy, N. Cummins, and B.Schuller. auDeep: Unsupervised Learning of Representations from Audio with Deep Recurrent Neural Networks, Journal of Machine Learning Research, 2017, submitted, 5 pages
+
 # Installation
 This project ships with a `setup.py` file which allows for installation and automatic dependency resolution through `pip`. We strongly recommend installing the project in its own Python `virtualenv`, since the Tensorflow source code needs to be patched in order to fix a bug that has not yet been resolved in the official repositories (see [below](#installing-in-a-virtualenv)). 
 
