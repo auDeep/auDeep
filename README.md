@@ -3,7 +3,7 @@
 **(c) 2017 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau**
 Published under GPLv3, see the LICENSE.md file for details.
 
-Please direct any questions or requests to Michael Freitag (freitagm at fim.uni-passau.de) or Shahin Amiriparian (shahin.amiriparian at tum.de).
+Please direct any questions or requests to Shahin Amiriparian (shahin.amiriparian at tum.de) or Michael Freitag (freitagm at fim.uni-passau.de).
 
 # Citing
 If you use auDeep or any code from auDeep in your research work, you are kindly asked to acknowledge the use of auDeep in your publications.
