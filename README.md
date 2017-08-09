@@ -1,6 +1,6 @@
 **auDeep** is a Python toolkit for unsupervised feature learning with deep neural networks (DNNs). Currently, the main focus of this project is feature extraction from audio data with deep recurrent autoencoders. However, the core feature learning algorithms are not limited to audio data. Furthermore, we plan on implementing additional DNN-based feature learning approaches.
 
-(c) 2017 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau
+**(c) 2017 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau**
 Published under GPLv3, see the LICENSE.md file for details.
 
 # Citing
