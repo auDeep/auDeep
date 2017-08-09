@@ -3,6 +3,8 @@
 **(c) 2017 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau**
 Published under GPLv3, see the LICENSE.md file for details.
 
+Please direct any questions or requests to Michael Freitag (freitagm at fim.uni-passau.de) or Shahin Amiriparian (shahin.amiriparian at tum.de).
+
 # Citing
 If you use auDeep or any code from auDeep in your research work, you are kindly asked to acknowledge the use of auDeep in your publications.
 > M. Freitag, S. Amiriparian, S. Pugachevskiy, N. Cummins, and B.Schuller. auDeep: Unsupervised Learning of Representations from Audio with Deep Recurrent Neural Networks, Journal of Machine Learning Research, 2017, submitted, 5 pages
