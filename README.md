@@ -7,7 +7,9 @@ Please direct any questions or requests to Shahin Amiriparian (shahin.amiriparia
 
 # Citing
 If you use auDeep or any code from auDeep in your research work, you are kindly asked to acknowledge the use of auDeep in your publications.
-> M. Freitag, S. Amiriparian, S. Pugachevskiy, N. Cummins, and B.Schuller. auDeep: Unsupervised Learning of Representations from Audio with Deep Recurrent Neural Networks, Journal of Machine Learning Research, 2017, submitted, 5 pages
+> M. Freitag, S. Amiriparian, S. Pugachevskiy, N. Cummins, and B.Schuller. auDeep: Unsupervised Learning of Representations from Audio with Deep Recurrent Neural Networks, arXiv preprint arXiv:1712.04382, 2017, 5 pages
+
+> S. Amiriparian, M. Freitag, N. Cummins, and B. Schuller. Sequence to sequence autoencoders for unsupervised representation learning from audio, Proceedings of the Detection and Classification of Acoustic Scenes and Events 2017 Workshop, pp. 17-21, 2017
 
 # Installation
 This project ships with a `setup.py` file which allows for installation and automatic dependency resolution through `pip`. We strongly recommend installing the project in its own Python `virtualenv`, since the Tensorflow source code needs to be patched in order to fix a bug that has not yet been resolved in the official repositories (see [below](#installing-in-a-virtualenv)). 
@@ -324,15 +326,15 @@ Generate features using a trained frequency-recurrent autoencoder. The hidden re
 ### `audeep ft-rae generate`
 Generate features using a trained frequency-time-recurrent autoencoder. The hidden representation, as learned by the autoencoder, for each spectogram is extracted as a one-dimensional feature vector for the respective instance. The resulting features for each instance as well as instance metadata are once again stored in netCDF 4 format.
 
-## Evaluation Commands
-While generated features can easily be exported into CSV/ARFF format for external processing (see [below](#auxiliary-commands)), this project provides the option to directly evaluate a set of generated features using a linear SVM or an MLP. We support evaluation using cross-validation based on predetermined folds, or evaluation using predetermined training, development, and test partitions. Prior to training, instances are shuffled and features are standardised using coefficients computed on the training data.
+## Evaluation and Prediction Commands
+While generated features can easily be exported into CSV/ARFF format for external processing (see [below](#auxiliary-commands)), the application provides the option to directly evaluate a set of generated features using a linear SVM or an MLP. We support evaluation using cross-validation based on predetermined folds, or evaluation using predetermined training, development, and test partitions. Prior to training, instances are shuffled and features are standardised using coefficients computed on the training data. Furthermore, predictions can be generated on unlabelled data and saved in CSV format.
 
 ### Common Options for SVM and MLP Evaluation
 The following options apply to both the `audeep svm evaluate`, and the `audeep mlp evaluate` commands. Cross-validated evaluation and partitioned evaluation are mutually exclusive, i.e. the `--cross-validate` option must not be set if the `--train-partitions` and `--eval-partitions` options are set.
 
 | Option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Default | Description |
 | ------ | ------- | ----------- |
-| `--input INPUT_FILE` | required | A netCDF 4 files containing one-dimensional feature vectors and associated metadata, structured according to our data model. |
+| `--input INPUT_FILE` | required | A netCDF 4 file containing one-dimensional feature vectors and associated metadata, structured according to our data model. |
 | `--cross-validate` | - | Perform cross-validated evaluation. Requires the input data to contain cross-validation information. |
 | `--train-partitions PARTITIONS...` | - | Perform partitioned evaluation, and train models on the specified partitions. Requires the input data to contain partition information, and requires the `--eval-partitions` option to be set. Valid partition identifiers are `TRAIN`, `DEVEL`, and `TEST`. |
 | `--eval-partitions PARTITIONS...` | - | Perform partitioned evaluation, and train models on the specified partitions. Requires the input data to contain partition information, and requires the `--train-partitions` option to be set. Valid partition identifiers are `TRAIN`, `DEVEL`, and `TEST`. |
@@ -340,15 +342,28 @@ The following options apply to both the `audeep svm evaluate`, and the `audeep m
 | `--upsample` | - | Upsample instances in the training partitions or splits, so that training occurs with balanced classes. |
 | `--majority-vote` | - | Use majority voting over individual chunks to determine the predictions for audio files. If each audio file has only one chunk, this option has no effect. |
 
-### `audeep svm evaluate`
-Evaluate a set of generated features using a linear SVM. Internally, this command uses the [LibLINEAR](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) backend of [sklearn](http://scikit-learn.org/) for training SVMs. In addition to the options listed above, this command accepts the following options.
+### Common Options for SVM and MLP Prediction
+The following options apply to both the `audeep svm predict`, and the `audeep mlp predict` commands. 
+
+| Option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Default | Description |
+| ------ | ------- | ----------- |
+| `--train-input TRAIN_FILE` | required | A netCDF 4 file containing one-dimensional feature vectors and associated metadata to use as training data, structured according to our data model. Must be fully labelled. |
+| `--train-partitions PARTITIONS...` | - | Use only the specified partitions from the training data. If this option is set, the data set may contain unlabelled instances, but the specified partitions must be fully labelled. |
+| `--eval-input EVAL_FILE` | required | A netCDF 4 file containing one-dimensional feature vectors and associated metadata for which to generate predictions, structured according to our data model. Even if label information is present in this data set, it is not used. |
+| `--eval-partitions PARTITIONS...` | - | Use only the specified partitions from the evaluation data. |
+| `--upsample` | - | Upsample instances in the training data, so that training occurs with balanced classes. |
+| `--majority-vote` | - | Use majority voting over individual chunks to determine the predictions for audio files. If each audio file has only one chunk, this option has no effect. |
+| `--output FILE` | required | Print predictions in CSV to the specified file. Each line of this file will contain the filename followed by a tab character, followed by the nominal predicted label for the filename. |
+
+### `audeep svm evaluate/predict`
+Evaluate a set of generated features, or predict labels on some data, using a linear SVM. Internally, this command uses the [LibLINEAR](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) backend of [sklearn](http://scikit-learn.org/) for training SVMs. In addition to the options listed above, this command accepts the following options.
 
 | Option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Default | Description |
 | ------ | ------- | ----------- |
 | `--complexity COMPLEXITY` | required | The SVM complexity parameter |
 
-### `audeep mlp evaluate`
-Evaluate a set of generated features using an MLP with softmax output. Currently, the entire data set is copied to GPU memory, and no batching is performed. In addition to the options listed above, this command accepts the following options.
+### `audeep mlp evaluate/predict`
+Evaluate a set of generated features, or predict labels on some data, using an MLP with softmax output. Currently, the entire data set is copied to GPU memory, and no batching is performed. In addition to the options listed above, this command accepts the following options.
 
 | Option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Default | Description |
 | ------ | ------- | ----------- |

@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 # 
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """An abstract interface for feature learning algorithms"""
 import abc
@@ -371,6 +371,7 @@ class BaseFeatureLearningWrapper(LoggingMixin):
                     num_epochs: int,
                     batch_size: int,
                     global_step: int = None,
+                    checkpoints_to_keep: int = None,
                     **kwargs):
         """
         Deserialize a model and train it on some data, serializing the updated model after each training epoch.
@@ -395,6 +396,9 @@ class BaseFeatureLearningWrapper(LoggingMixin):
         global_step: int, optional
             If set, restore the model variables to their state at the specified global step. If not set, the latest
             checkpoint is used to restore variables.
+        checkpoints_to_keep: int, optional
+            The number of checkpoints to keep on disk. Defaults to None, which will keep all checkpoints. If a number is
+            set, only the most recent checkpoints will be kept.
         kwargs: keyword arguments
             Additional keyword arguments. They can be used, for example, to specify additional training hyperparameters
             such as the learning rate.
@@ -409,6 +413,7 @@ class BaseFeatureLearningWrapper(LoggingMixin):
             num_batches = num_instances // batch_size + 1
 
         self.log.info("building computation graph")
+        tf.reset_default_graph()
 
         queue = SpectrogramQueue(record_files=record_files,
                                  feature_shape=feature_shape,
@@ -428,7 +433,7 @@ class BaseFeatureLearningWrapper(LoggingMixin):
             tf_merged_summaries = tf.summary.merge_all()
 
             saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, "model"),
-                                   max_to_keep=None)
+                                   max_to_keep=checkpoints_to_keep)
             summary_writer = tf.summary.FileWriter(str(model_filename.parent), graph_wrapper.graph)
 
             self.log.info("preparing input queues")
@@ -494,6 +499,7 @@ class BaseFeatureLearningWrapper(LoggingMixin):
             metadata
         """
         self.log.info("building computation graph")
+        tf.reset_default_graph()
 
         input_placeholder = tf.placeholder(name="inputs",
                                            shape=[data_set.feature_shape[0], None, data_set.feature_shape[1]],

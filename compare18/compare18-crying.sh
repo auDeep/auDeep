@@ -26,41 +26,11 @@ verbose_option=""
 
 export PYTHONUNBUFFERED=1
 
-taskName="esc-10"
+taskName="compare18-crying"
+workspace="audeep_workspace"
 
 # base directory for audio files
-audio_base="${taskName}/input/data_set"
-
-#########################################################
-# 0. PREPARATION
-#########################################################
-
-# Check if the ESC-10 data set is present at the expected location. If not, download it from GitHub.
-download_data="false"
-
-if [ ! -d ${audio_base} ]; then
-    echo "ESC-10 data set not present at ${audio_base}"
-
-    mkdir -p ${audio_base}
-    download_data="true"
-else
-    git_rev=$(cd ${audio_base} && git rev-parse HEAD) || ""
-
-    if [ ${git_rev} != "553c8f1743b9dba6b282e1323c3ca8fa76923448" ]; then
-        echo "ESC-10 data set present at ${audio_base} but wrong version"
-
-        rm -r ${audio_base}
-        download_data="true"
-    fi
-fi
-
-if [ ${download_data} == "true" ]; then
-    echo "Retrieving ESC-10 data set from https://github.com/karoldvl/ESC-10.git"
-    git clone "https://github.com/karoldvl/ESC-10.git" ${audio_base}
-fi
-
-# Check if auDeep has been properly installed
-audeep --version > /dev/null || (echo "Could not execute 'audeep --version' - please check your installation"; exit 1)
+audio_base=".."
 
 ##########################################################
 # 1. Spectrogram Extraction
@@ -75,26 +45,27 @@ window_overlap="0.04"
 # Mel-scale spectrograms with 128 frequency bands are extracted
 mel_bands="128"
 
-# The ESC-10 audio files differ in length. By setting the --fixed-length option, we make sure that all audio files are
-# exactly 5 seconds long. This is achieved by cutting or zero-padding audio files as required.
+# The ComParE 2018 Crying audio files differ in length. By setting the --fixed-length option, we make sure that all
+# audio files are exactly 5 seconds long. This is achieved by cutting or zero-padding audio files as required.
 fixed_length="5"
 
-# We filter low amplitudes in the spectrograms, which eliminates some background noise. During our preliminary
-# evaluation, we found that different classes have high accuracy if amplitudes below different thresholds are
-# filtered. Our system normalises spectrograms so that the maximum amplitude is 0 dB, and we filter amplitudes below
-# -30 dB, -45 dB, -60 dB and -75 dB.
+# We filter low amplitudes in the spectrograms, which eliminates some background noise. Our system normalises
+# spectrograms so that the maximum amplitude is 0 dB, and we filter amplitudes below -30 dB, -45 dB, -60 dB and -75 dB.
 clip_below_values="-30 -45 -60 -75"
 
+# Parser for the data set
+parser="audeep.backend.parsers.compare18_crying.Compare18CryingParser"
+
 # Base path for spectrogram files. auDeep automatically creates the required directories for us.
-spectrogram_base="${taskName}/input/spectrograms"
+spectrogram_base="${workspace}/input/spectrograms"
 
 for clip_below_value in ${clip_below_values}; do
     spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}.nc"
 
     if [ ! -f ${spectrogram_file} ]; then
-        echo audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
+        echo audeep preprocess${verbose_option} --parser ${parser} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
         echo
-        audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
+        audeep preprocess${verbose_option} --parser ${parser} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
     fi
 done
 
@@ -130,16 +101,16 @@ fi
 
 # Network training:
 # =================
-# Train for 64 epochs, in batches of 64 examples
+# Train for 64 epochs, in batches of 512 examples
 num_epochs="64"
-batch_size="64"
+batch_size="512"
 
 # Use learning rate 0.001 and keep probability 80% (20% dropout).
 learning_rate="0.001"
 keep_prob="0.8"
 
 # Base path for training runs. auDeep automatically creates the required directories for us.
-output_base="${taskName}/output"
+output_base="${workspace}/output"
 
 # Train one autoencoder on each type of spectrogram
 for clip_below_value in ${clip_below_values}; do
@@ -177,7 +148,7 @@ for clip_below_value in ${clip_below_values}; do
     model_dir="${run_name}/logs"
 
     # The file to which we write the learned representations
-    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
+    representation_file="${run_name}/representations.nc"
 
     if [ ! -f ${representation_file} ]; then
         echo audeep${verbose_option} t-rae generate --model-dir ${model_dir} --input ${spectrogram_file} --output ${representation_file}
@@ -187,44 +158,7 @@ for clip_below_value in ${clip_below_values}; do
 done
 
 ##########################################################
-# 4. Feature Evaluation
-##########################################################
-
-# MLP topology:
-# =============
-# Use two hidden layers with 150 units each
-mlp_num_layers="2"
-mlp_num_units="150"
-
-# MLP training:
-# =============
-# Train for 400 epochs without batching
-mlp_num_epochs="400"
-
-# Use learning rate 0.001 and keep probability 60% (40% dropout)
-mlp_learning_rate="0.001"
-mlp_keep_prob="0.6"
-
-# Repeat evaluation five times and report the average accuracy.
-mlp_repeat="5"
-
-# For each trained autoencoder, evaluate a MLP classifier on the extracted features
-for clip_below_value in ${clip_below_values}; do
-    # The file to containing the learned representations
-    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
-
-    # The file to which we write classification accuracy
-    results_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/results.csv"
-
-    echo "ACCURACY,UAR" > ${results_file}
-
-    echo audeep mlp evaluate --quiet --input ${representation_file} --cross-validate --shuffle --num-epochs ${mlp_num_epochs} --learning-rate ${mlp_learning_rate} --keep-prob ${mlp_keep_prob} --num-layers ${mlp_num_layers} --num-units ${mlp_num_units} --repeat ${mlp_repeat} | tee -a ${results_file}
-    echo
-    audeep mlp evaluate --quiet --input ${representation_file} --cross-validate --shuffle --num-epochs ${mlp_num_epochs} --learning-rate ${mlp_learning_rate} --keep-prob ${mlp_keep_prob} --num-layers ${mlp_num_layers} --num-units ${mlp_num_units} --repeat ${mlp_repeat} | tee -a ${results_file}
-done
-
-##########################################################
-# 5. Feature Fusion
+# 4. Feature Fusion
 ##########################################################
 
 # File to which we write the fused representations
@@ -238,13 +172,36 @@ if [ ! -f ${fused_file} ]; then
 fi
 
 ##########################################################
-# 6. Fused Feature Evaluation
+# 5. Feature Export
 ##########################################################
+export_base="${workspace}/arff"
+export_basename="ComParE2018_Crying.auDeep"
 
-# File to which we write classification results on the fused representations
-results_file="${output_base}/${taskName}-fused/results.csv"
+for clip_below_value in ${clip_below_values}; do
+    # Base directory for the training run
+    run_name="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}"
 
-echo "ACCURACY,UAR" > ${results_file}
-echo audeep mlp evaluate --quiet --input ${fused_file} --cross-validate --shuffle --num-epochs ${mlp_num_epochs} --learning-rate ${mlp_learning_rate} --keep-prob ${mlp_keep_prob} --num-layers ${mlp_num_layers} --num-units ${mlp_num_units} --repeat ${mlp_repeat} | tee -a ${results_file}
+    # The file containing the learned representations
+    representation_file="${run_name}/representations.nc"
+
+    # The filenames for the ARFF feature sets
+    export_name="${export_basename}${clip_below_value}"
+
+    echo audeep export --input ${representation_file} --format ARFF --labels-last --output "${export_base}/partitions" --name ${export_name}
+    echo
+    audeep export --input ${representation_file} --format ARFF --labels-last --output "${export_base}/partitions" --name ${export_name}
+
+    # Copy features to the main arff directory of the subchallenge
+    cp "${export_base}/partitions/train/${export_name}.arff" "${audio_base}/arff/${export_name}.train.arff"
+    cp "${export_base}/partitions/test/${export_name}.arff" "${audio_base}/arff/${export_name}.test.arff"
+done
+
+export_name="${export_basename}-fused"
+
+echo audeep export --input ${fused_file} --format ARFF --labels-last --output "${export_base}/partitions" --name ${export_name}
 echo
-audeep mlp evaluate --quiet --input ${fused_file} --cross-validate --shuffle --num-epochs ${mlp_num_epochs} --learning-rate ${mlp_learning_rate} --keep-prob ${mlp_keep_prob} --num-layers ${mlp_num_layers} --num-units ${mlp_num_units} --repeat ${mlp_repeat} | tee -a ${results_file}
+audeep export --input ${fused_file} --format ARFF --labels-last --output "${export_base}/partitions" --name ${export_name}
+
+# Copy features to the main arff directory of the subchallenge
+cp "${export_base}/partitions/train/${export_name}.arff" "${audio_base}/arff/${export_name}.train.arff"
+cp "${export_base}/partitions/test/${export_name}.arff" "${audio_base}/arff/${export_name}.test.arff"

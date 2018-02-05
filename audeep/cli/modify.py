@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 # 
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """Data set modification"""
 from pathlib import Path
@@ -72,7 +72,7 @@ class Modify(Command):
             data_set = create_cv_setup(data_set, num_folds=parsed_args.add_cv_setup)
         elif parsed_args.add_partitioning is not None:
             data_set = create_partitioning(data_set, partitions=parsed_args.add_partitioning)
-        elif parsed_args.remove_partitions:
+        elif parsed_args.remove_partitioning:
             data_set = data_set.copy()
 
             for index in data_set:

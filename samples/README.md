@@ -108,3 +108,25 @@ The autoencoders learn representations of size 512 (since the state size of the 
 
 ### Classification
 The GTZAN data set does not contain a predefined cross-validation setup. Instead, we generate a stratified 5-fold cross-validation setup, in which all chunk of the same original instance are placed either in the training or the validation split. The MLP classifier is trained to predict labels of the individual chunks, and a majority vote over the chunks of an instance is taken to determine the final classification.
+
+## TUT Acoustic Scenes 2017
+
+### Spectrogram Extraction
+As opposed to the other data sets, instances in the TUT Acoustic Scenes 2017 data set are recorded in stereo. We found that in many cases, essential information about the class label is present in only one of the two channels. Therefore, we extract spectrograms from the two channels separately. Furthermore, we extract spectrograms from the mean and difference of the two channels, since we discovered that this further boosts classification accuracy.
+
+Amplitude clipping does not benefit classification accuracy on the TUT Acoustic Scenes 2017 data set much.
+
+| Parameter | Value(s) |
+| --------- | -------- |
+| FFT window width | 160 ms |
+| FFT window overlap | 80 ms |
+| Mel frequency bands | 320 |
+| channels | left, right, mean, difference |
+
+### Autoencoder Training
+We train autoencoders with unidirectional encoder networks, and bidirectional decoder networks on the extracted spectrograms. Training is performed for 40 epochs in batches of 512 instances.
+
+The autoencoders learn representations of size 1024 (since the state size of the decoder network is 1024), which results in 4096-dimensional feature vectors after fusion of the representations.
+
+### Classification
+The TUT Acoustic Scenes 2017 data set contains a predefined cross-validation setup, which we use for evaluation.

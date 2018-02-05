@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -9,66 +9,21 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """Cross-validated or partitioned evaluation of a learner on some data"""
 from typing import Sequence
 
 import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix, recall_score
-from sklearn.preprocessing import StandardScaler
 
 from audeep.backend.data.data_set import DataSet, Split, Partition
-from audeep.backend.data.upsample import upsample
-from audeep.backend.learners import LearnerBase
+from audeep.backend.learners import LearnerBase, PreProcessingWrapper
 from audeep.backend.log import LoggingMixin
-
-
-def _majority_vote(chunked_data_set: DataSet,
-                   chunked_predictions: np.ndarray) -> (np.ndarray, np.ndarray):
-    """
-    Compute predictions and true labels on a chunked data set using majority voting.
-    
-    In a valid data set, all chunks of the same audio file have the same labels, so there is no ambiguity in computing
-    the true labels of audio files. Predictions for an audio file are computed by looking at the predictions for the
-    individual chunks, and selecting the most-chosen prediction.
-    
-    Parameters
-    ----------
-    chunked_data_set: DataSet
-        A data set containing true labels of chunked audio files
-    chunked_predictions: numpy.ndarray
-        A one-dimensional NumPy array containing predictions for the chunks. Must have the same number of entries as 
-        the specified data set has instances.
-        
-    Returns
-    -------
-    true_labels: numpy.ndarray
-        The true labels of the audio files in the specified data set.
-    predictions: numpy.ndarray
-        The predictions for the audio files computed using majority voting over the predictions on the individual chunks
-    """
-    true_labels = {}
-    predictions = {}
-
-    for index in chunked_data_set:
-        instance = chunked_data_set[index]
-
-        true_labels[instance.filename] = instance.label_numeric
-
-        if instance.filename not in predictions:
-            predictions[instance.filename] = []
-
-        predictions[instance.filename].append(chunked_predictions[index])
-
-    true_labels = [item[1] for item in sorted(true_labels.items(), key=lambda item: item[0])]
-    predictions = [np.argmax(np.bincount(item[1])) for item in sorted(predictions.items(), key=lambda item: item[0])]
-
-    return np.array(true_labels), np.array(predictions)
 
 
 def uar_score(labels: np.ndarray,
@@ -237,30 +192,25 @@ class CrossValidatedEvaluation(LoggingMixin):
         for fold in range(data_set.num_folds):
             self.log.info("processing cross validation fold %d...", fold + 1)
 
+            learner_wrapper = PreProcessingWrapper(learner=self._learner,
+                                                   upsample=self._upsample,
+                                                   majority_vote=self._majority_vote)
+
             train_split = data_set.split(fold=fold,
                                          split=Split.TRAIN)
-
-            if self._upsample:
-                train_split = upsample(train_split)
-
-            train_split = train_split.shuffled()
             valid_split = data_set.split(fold=fold,
-                                         split=Split.VALID).shuffled()
+                                         split=Split.VALID)
 
-            scaler = StandardScaler()
-            scaler.fit(train_split.features)
+            learner_wrapper.fit(train_split)
 
-            train_split = train_split.scaled(scaler)
-            valid_split = valid_split.scaled(scaler)
+            # IMPORTANT: these methods return maps of filename to label, since order may (or most certainly will) be
+            # different
+            predictions = learner_wrapper.predict(valid_split)
+            true_labels = valid_split.filename_labels_numeric
 
-            self._learner.fit(train_split.features, train_split.labels_numeric)
-            chunked_predictions = self._learner.predict(valid_split.features)
-
-            if self._majority_vote:
-                true_labels, predictions = _majority_vote(valid_split, chunked_predictions)
-            else:
-                true_labels = valid_split.labels_numeric
-                predictions = chunked_predictions
+            # sort labels and predictions by filename
+            predictions = np.array([item[1] for item in sorted(predictions.items(), key=lambda item: item[0])])
+            true_labels = np.array([item[1] for item in sorted(true_labels.items(), key=lambda item: item[0])])
 
             accuracy = accuracy_score(true_labels, predictions)
             uar = uar_score(true_labels, predictions)
@@ -389,32 +339,25 @@ class PartitionedEvaluation(LoggingMixin):
         if not data_set.has_partition_info:
             raise ValueError("data set does not have partition info")
 
-        self.log.info("preparing data set")
-
-        train_split = data_set.partitions(self._train_partitions)
-
-        if self._upsample:
-            train_split = upsample(train_split)
-
-        train_split = train_split.shuffled()
-        eval_split = data_set.partitions(self._eval_partitions).shuffled()
-
-        scaler = StandardScaler()
-        scaler.fit(train_split.features)
-
-        train_split = train_split.scaled(scaler)
-        eval_split = eval_split.scaled(scaler)
-
         self.log.info("training classifier")
 
-        self._learner.fit(train_split.features, train_split.labels_numeric)
-        chunked_predictions = self._learner.predict(eval_split.features)
+        learner_wrapper = PreProcessingWrapper(learner=self._learner,
+                                               upsample=self._upsample,
+                                               majority_vote=self._majority_vote)
 
-        if self._majority_vote:
-            true_labels, predictions = _majority_vote(eval_split, chunked_predictions)
-        else:
-            true_labels = eval_split.labels_numeric
-            predictions = chunked_predictions
+        train_split = data_set.partitions(self._train_partitions)
+        eval_split = data_set.partitions(self._eval_partitions)
+
+        learner_wrapper.fit(train_split)
+
+        # IMPORTANT: these methods return maps of filename to label, since order may (or most certainly will) be
+        # different
+        predictions = learner_wrapper.predict(eval_split)
+        true_labels = eval_split.filename_labels_numeric
+
+        # sort labels and predictions by filename
+        predictions = np.array([item[1] for item in sorted(predictions.items(), key=lambda item: item[0])])
+        true_labels = np.array([item[1] for item in sorted(true_labels.items(), key=lambda item: item[0])])
 
         self._accuracy = accuracy_score(true_labels, predictions)
         self._uar = uar_score(true_labels, predictions)

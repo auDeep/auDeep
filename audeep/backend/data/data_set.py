@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """Main data handling implementation using xarray"""
 import json
@@ -768,6 +768,32 @@ class DataSet(LoggingMixin):
             raise AttributeError("data set does not have label information")
 
         return self._data[_DataVar.LABEL_NOMINAL].values.astype(np.str)
+
+    @property
+    def filename_labels_numeric(self) -> Mapping[str, int]:
+        """
+        Returns the numeric labels of each audio file.
+        
+        If the data set contains only one chunk per audio file, this function returns semantically the same data as 
+        the `labels_numeric` function. If, however, the data set contains multiple chunks per audio file, this function
+        returns only one entry for each audio file. No information is lost, since in a valid data set, all chunks of the
+        same original instance must have the same label.
+        
+        Returns
+        -------
+        map of str to int
+            A mapping of filenames to numeric labels. 
+        """
+        if not self.is_fully_labeled:
+            raise AttributeError("data set does not have label information")
+
+        labels = {}
+
+        for index in self:
+            instance = self[index]
+            labels[instance.filename] = instance.label_numeric
+
+        return labels
 
     @property
     def features(self) -> np.ndarray:

@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """Entry point for the auDeep application"""
 import argparse
@@ -62,7 +62,7 @@ class AuDeepApp(App):
     def __init__(self):
         super(AuDeepApp, self).__init__(
             description="Deep Representation Learning Toolkit for Acoustic Data",
-            version="0.9",
+            version="0.9.1",
             command_manager=CommandManager("audeep.commands"),
             deferred_help=True
         )
@@ -73,7 +73,7 @@ class AuDeepApp(App):
 
         parser = super().build_option_parser(description, version, argparse_kwargs=argparse_kwargs)
 
-        version_str = "%(prog)s {0}  Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, " \
+        version_str = "%(prog)s {0}  Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, " \
                       "Bjoern Schuller\n" \
                       "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n" \
                       "This is free software: you are free to change and redistribute it.\n" \

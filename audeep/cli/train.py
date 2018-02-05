@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """DNN training commands"""
 import abc
@@ -97,6 +97,11 @@ class TrainBaseCommand(LoggingMixin, Command):
                             default=self.default_run_name,
                             type=Path,
                             help="Base directory for the training run (default %s)" % self.default_run_name)
+        parser.add_argument("--checkpoints-to-keep",
+                            default=None,
+                            type=int,
+                            help="Number of checkpoints to keep (default all). If set, only the most recent checkpoints"
+                                 "will be kept.")
         parser.add_argument("--input",
                             type=Path,
                             nargs="+",
@@ -286,6 +291,7 @@ class TrainTimeAutoencoder(TrainAutoencoderBaseCommand):
                             num_instances=self.num_instances,
                             num_epochs=parsed_args.num_epochs,
                             batch_size=parsed_args.batch_size,
+                            checkpoints_to_keep=parsed_args.checkpoints_to_keep,
                             learning_rate=parsed_args.learning_rate,
                             keep_prob=parsed_args.keep_prob,
                             encoder_noise=parsed_args.encoder_noise,
@@ -349,6 +355,7 @@ class TrainFrequencyAutoencoder(TrainAutoencoderBaseCommand):
                             num_instances=self.num_instances,
                             num_epochs=parsed_args.num_epochs,
                             batch_size=parsed_args.batch_size,
+                            checkpoints_to_keep=parsed_args.checkpoints_to_keep,
                             learning_rate=parsed_args.learning_rate,
                             keep_prob=parsed_args.keep_prob,
                             encoder_noise=parsed_args.encoder_noise,
@@ -469,6 +476,7 @@ class TrainFrequencyTimeAutoencoder(TrainBaseCommand):
                             num_instances=self.num_instances,
                             num_epochs=parsed_args.num_epochs,
                             batch_size=parsed_args.batch_size,
+                            checkpoints_to_keep=parsed_args.checkpoints_to_keep,
                             learning_rate=parsed_args.learning_rate,
                             keep_prob=parsed_args.keep_prob,
                             f_encoder_noise=parsed_args.f_encoder_noise,

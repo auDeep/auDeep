@@ -26,7 +26,7 @@ verbose_option=""
 
 export PYTHONUNBUFFERED=1
 
-taskName="esc-10"
+taskName="tut-as-2017"
 
 # base directory for audio files
 audio_base="${taskName}/input/data_set"
@@ -35,29 +35,20 @@ audio_base="${taskName}/input/data_set"
 # 0. PREPARATION
 #########################################################
 
-# Check if the ESC-10 data set is present at the expected location. If not, download it from GitHub.
-download_data="false"
+tut_as_files="TUT-acoustic-scenes-2017-development.audio.1.zip TUT-acoustic-scenes-2017-development.audio.10.zip TUT-acoustic-scenes-2017-development.audio.2.zip TUT-acoustic-scenes-2017-development.audio.3.zip TUT-acoustic-scenes-2017-development.audio.4.zip TUT-acoustic-scenes-2017-development.audio.5.zip TUT-acoustic-scenes-2017-development.audio.6.zip TUT-acoustic-scenes-2017-development.audio.7.zip TUT-acoustic-scenes-2017-development.audio.8.zip TUT-acoustic-scenes-2017-development.audio.9.zip TUT-acoustic-scenes-2017-development.doc.zip TUT-acoustic-scenes-2017-development.error.zip TUT-acoustic-scenes-2017-development.meta.zip"
+tut_as_download_baseurl="https://zenodo.org/record/400515/files/"
 
-if [ ! -d ${audio_base} ]; then
-    echo "ESC-10 data set not present at ${audio_base}"
-
-    mkdir -p ${audio_base}
-    download_data="true"
-else
-    git_rev=$(cd ${audio_base} && git rev-parse HEAD) || ""
-
-    if [ ${git_rev} != "553c8f1743b9dba6b282e1323c3ca8fa76923448" ]; then
-        echo "ESC-10 data set present at ${audio_base} but wrong version"
-
-        rm -r ${audio_base}
-        download_data="true"
+# Check if the TUT AS 2017 data set is present at the expected location. If not, download it.
+for file in ${tut_as_files}; do
+    if [ ! -f "${audio_base}/${file}" ]; then
+        wget -O "${audio_base}/${file}" "${tut_as_download_baseurl}/${file}"
     fi
-fi
 
-if [ ${download_data} == "true" ]; then
-    echo "Retrieving ESC-10 data set from https://github.com/karoldvl/ESC-10.git"
-    git clone "https://github.com/karoldvl/ESC-10.git" ${audio_base}
-fi
+    unzip "${audio_base}/${file}" -d "${audio_base}"
+done
+
+mv ${audio_base}/TUT-acoustic-scenes-2017-development/* "${audio_base}/"
+rm -r "${audio_base}/TUT-acoustic-scenes-2017-development"
 
 # Check if auDeep has been properly installed
 audeep --version > /dev/null || (echo "Could not execute 'audeep --version' - please check your installation"; exit 1)
@@ -66,35 +57,30 @@ audeep --version > /dev/null || (echo "Could not execute 'audeep --version' - pl
 # 1. Spectrogram Extraction
 ##########################################################
 
-# We use 80 ms Hann windows to compute spectrograms
-window_width="0.08"
+# We use 160 ms Hann windows to compute spectrograms
+window_width="0.16"
 
-# We use 40 ms overlap between windows to compute spectrograms
-window_overlap="0.04"
+# We use 80 ms overlap between windows to compute spectrograms
+window_overlap="0.08"
 
 # Mel-scale spectrograms with 128 frequency bands are extracted
-mel_bands="128"
+mel_bands="320"
 
-# The ESC-10 audio files differ in length. By setting the --fixed-length option, we make sure that all audio files are
-# exactly 5 seconds long. This is achieved by cutting or zero-padding audio files as required.
-fixed_length="5"
-
-# We filter low amplitudes in the spectrograms, which eliminates some background noise. During our preliminary
-# evaluation, we found that different classes have high accuracy if amplitudes below different thresholds are
-# filtered. Our system normalises spectrograms so that the maximum amplitude is 0 dB, and we filter amplitudes below
-# -30 dB, -45 dB, -60 dB and -75 dB.
-clip_below_values="-30 -45 -60 -75"
+# Unlike the other data sets, the TUT AS 2017 does not benefit from amplitude clipping. Instead, we have found that
+# extracting spectrograms from different combinations of the two channels present in the audio files benefits
+# classification accuracy quite substantially.
+channels="mean diff left right"
 
 # Base path for spectrogram files. auDeep automatically creates the required directories for us.
 spectrogram_base="${taskName}/input/spectrograms"
 
-for clip_below_value in ${clip_below_values}; do
-    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}.nc"
+for channel in ${channels}; do
+    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}.nc"
 
     if [ ! -f ${spectrogram_file} ]; then
-        echo audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
+        echo audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --channels ${channel} --mel-spectrum ${mel_bands}
         echo
-        audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --fixed-length ${fixed_length} --center-fixed --clip-below ${clip_below_value} --mel-spectrum ${mel_bands}
+        audeep preprocess${verbose_option} --basedir ${audio_base} --output ${spectrogram_file} --window-width ${window_width} --window-overlap ${window_overlap} --channels ${channel} --mel-spectrum ${mel_bands}
     fi
 done
 
@@ -130,9 +116,9 @@ fi
 
 # Network training:
 # =================
-# Train for 64 epochs, in batches of 64 examples
-num_epochs="64"
-batch_size="64"
+# Train for 40 epochs, in batches of 512 examples
+num_epochs="40"
+batch_size="512"
 
 # Use learning rate 0.001 and keep probability 80% (20% dropout).
 learning_rate="0.001"
@@ -142,12 +128,12 @@ keep_prob="0.8"
 output_base="${taskName}/output"
 
 # Train one autoencoder on each type of spectrogram
-for clip_below_value in ${clip_below_values}; do
+for channel in ${channels}; do
     # The file containing the extracted spectrograms
-    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}.nc"
+    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}.nc"
 
     # Base directory for the training run
-    run_name="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}"
+    run_name="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}"
 
     # Directory for storing temporary files. The spectrograms are temporarily stored as TFRecords files, in order to
     # be able to leverage TensorFlows input queues. This substantially improves training speed at the cost of using
@@ -166,18 +152,18 @@ done
 ##########################################################
 
 # For each trained autoencoder, extract the learned representations of spectrograms
-for clip_below_value in ${clip_below_values}; do
+for channel in ${channels}; do
     # The file containing the extracted spectrograms
-    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}.nc"
+    spectrogram_file="${spectrogram_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}.nc"
 
     # Base directory for the training run
-    run_name="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}"
+    run_name="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}"
 
     # Models are stored in the "logs" subdirectory of the training run base directory
     model_dir="${run_name}/logs"
 
     # The file to which we write the learned representations
-    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
+    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
 
     if [ ! -f ${representation_file} ]; then
         echo audeep${verbose_option} t-rae generate --model-dir ${model_dir} --input ${spectrogram_file} --output ${representation_file}
@@ -209,12 +195,12 @@ mlp_keep_prob="0.6"
 mlp_repeat="5"
 
 # For each trained autoencoder, evaluate a MLP classifier on the extracted features
-for clip_below_value in ${clip_below_values}; do
+for channel in ${channels}; do
     # The file to containing the learned representations
-    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
+    representation_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/representations.nc"
 
     # The file to which we write classification accuracy
-    results_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}${clip_below_value}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/results.csv"
+    results_file="${output_base}/${taskName}-${window_width}-${window_overlap}-${mel_bands}-${channel}/t-${num_layers}x${num_units}-${bidirectional_encoder_key}-${bidirectional_decoder_key}/results.csv"
 
     echo "ACCURACY,UAR" > ${results_file}
 

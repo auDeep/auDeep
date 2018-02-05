@@ -5,7 +5,7 @@ from subprocess import CalledProcessError, check_output
 from setuptools import setup, find_packages
 
 PROJECT = "auDeep"
-VERSION = "0.9"
+VERSION = "0.9.1"
 LICENSE = "GPLv3+"
 AUTHOR = "Michael Freitag"
 AUTHOR_EMAIL = "freitagm@fim.uni-passau.de"
@@ -99,6 +99,8 @@ setup(
             "ft-rae generate = audeep.cli.generate:GenerateFrequencyTimeAutoencoder",
             "mlp evaluate = audeep.cli.evaluate:MLPEvaluation",
             "svm evaluate = audeep.cli.evaluate:SVMEvaluation",
+            "mlp predict = audeep.cli.predict:MLPPrediction",
+            "svm predict = audeep.cli.predict:SVMPrediction",
         ],
     },
     zip_safe=False,

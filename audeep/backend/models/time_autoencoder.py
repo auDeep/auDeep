@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 # 
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """A time-recurrent autoencoder"""
 from typing import Optional
@@ -21,13 +21,14 @@ from typing import Optional
 import tensorflow as tf
 
 from audeep.backend.decorators import scoped_subgraph_initializers, scoped_subgraph
+from audeep.backend.log import LoggingMixin
 from audeep.backend.models import summaries
 from audeep.backend.models.ops import linear, time_distributed_linear
-from audeep.backend.models.rnn_base import RNNArchitecture, StandardRNN, FeedPreviousRNN
+from audeep.backend.models.rnn_base import RNNArchitecture, StandardRNN, FeedPreviousRNN, _RNNBase
 
 
 @scoped_subgraph_initializers
-class TimeAutoencoder:
+class TimeAutoencoder(LoggingMixin):
     """
     A recurrent autoencoder which processes time-series data sequentially along the time axis.
     """
@@ -64,6 +65,8 @@ class TimeAutoencoder:
             Scalar tensor containing the probability at each time step to feed the previous output of the decoder as 
             input 
         """
+        super().__init__()
+
         # inputs
         self.inputs = inputs
         self.learning_rate = learning_rate
@@ -203,30 +206,51 @@ class TimeAutoencoder:
         return decoder_inputs
 
     @scoped_subgraph
-    def decoder(self) -> FeedPreviousRNN:
+    def decoder(self) -> _RNNBase:
         """
         Creates the decoder RNN.
         
         The decoder RNN receives the decoder input sequence as input, and is initialized with the hidden representation
-        as the initial state vector.
+        as the initial state vector. 
+        
+        If the decoder architecture is bidirectional, we have currently disabled using a FeedPreviousRNN due to possibly
+        lower model performance. A suitable warning will be emitted to notify users of this behavior.
         
         Returns
         -------
-        FeedPreviousRNN
+        _RNNBase
             The decoder RNN
         """
-        return FeedPreviousRNN(architecture=self.decoder_architecture,
-                               inputs=self.decoder_inputs,
-                               initial_state=self.representation,
-                               keep_prob=self.keep_prob,
-                               feed_previous_prob=self.decoder_feed_previous_prob)
+        if self.decoder_architecture.bidirectional:
+            self.log.warn("'decoder_feed_previous_prob' set on bidirectional decoder will be ignored. If you have set "
+                          "--decoder-feed-prob 0, or omitted the option, the network will behave as expected and you "
+                          "can safely ignore this warning.")
+
+            # Make sure that decoder_feed_previous_prob stays in the computation graph, otherwise TensorFlow will
+            # complain that we pass decoder_feed_previous_prob in input map although it is not in the graph. This is
+            # somewhat questionable behavior on TensorFlow's side, which we just have to live with.
+            add = tf.add(self.decoder_feed_previous_prob, 1)
+
+            with tf.control_dependencies([add]):
+                return StandardRNN(architecture=self.decoder_architecture,
+                                   inputs=self.decoder_inputs,
+                                   initial_state=self.representation,
+                                   keep_prob=self.keep_prob,
+                                   input_noise=None)
+        else:
+            return FeedPreviousRNN(architecture=self.decoder_architecture,
+                                   inputs=self.decoder_inputs,
+                                   initial_state=self.representation,
+                                   keep_prob=self.keep_prob,
+                                   feed_previous_prob=self.decoder_feed_previous_prob)
 
     @scoped_subgraph
     def reconstruction(self) -> tf.Tensor:
         """
         Computes the reconstruction of the input sequence.
         
-        Although an output projection is implicitly added by the decoder RNN, another linear transformation of the 
+        If the `decoder_feed_previous_prob` parameter is set, the decoder is a FeedPreviousRNN. In this case,
+        although an output projection is implicitly added by the decoder RNN, another linear transformation of the 
         decoder output is performed. This is done to preserve consistency of models between the unidirectional and
         bidirectional cases, since in the latter case the decoder output sequence has twice as many features as the
         input sequence. Thus, another linear projection is required in the bidirectional case.

@@ -1,4 +1,4 @@
-# Copyright (C) 2017  Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
+# Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -9,11 +9,11 @@
 #
 # auDeep is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with auDeep.  If not, see <http://www.gnu.org/licenses/>.
+# along with auDeep. If not, see <http://www.gnu.org/licenses/>.
 
 """Data set export to TFRecords, CSV, or ARFF"""
 import logging
@@ -112,7 +112,13 @@ def _write_csv(outfile: Path,
         data_frame.insert(2, _DataVar.LABEL_NOMINAL, xr_data[_DataVar.LABEL_NOMINAL].values)
         data_frame.insert(3, _DataVar.LABEL_NUMERIC, xr_data[_DataVar.LABEL_NUMERIC].values)
 
-    data_frame.to_csv(str(outfile.with_suffix(".csv")), index=False)
+    # filename might contain dots
+    filename = str(outfile)
+
+    if not filename.endswith(".csv"):
+        filename = filename + ".csv"
+
+    data_frame.to_csv(filename, index=False)
 
 
 def _write_arff(outfile: Path,
@@ -186,7 +192,13 @@ def _write_arff(outfile: Path,
 
         data_arff["data"].append(row)
 
-    with open(str(outfile.with_suffix(".arff")), "w") as fp:
+    # filename might contain dots
+    filename = str(outfile)
+
+    if not filename.endswith(".arff"):
+        filename = filename + ".arff"
+
+    with open(filename, "w", newline="\n") as fp:
         arff.dump(data_arff, fp)
 
 
