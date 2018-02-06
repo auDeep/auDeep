@@ -94,7 +94,7 @@ class InspectRaw(LoggingMixin, Command):
 
         information = [
             ("number of audio files", parser.num_instances),
-            ("number of labels", len(parser.label_map)),
+            ("number of labels", len(parser.label_map) if parser.label_map else "0"),
             ("cross validation folds", parser.num_folds),
             ("minimum sample length", "%.2f s" % np.min(lengths)),
             ("maximum sample length", "%.2f s" % np.max(lengths)),
