@@ -110,8 +110,11 @@ Representation learning with auDeep is performed in several distinct stages.
 We use the [ESC-10 data set](https://github.com/karoldvl/ESC-10) for environmental sound classification in this guide, which contains 400 instances from 10 classes. In the command line, navigate to a directory of your choice. In the following, we will assume that any commands are executed from the directory you choose in this step. Retrieve the ESC-10 data set from Github with
 ```
 > git clone https://github.com/karoldvl/ESC-10.git
+> pushd ESC-10
+> git checkout 553c8f1743b9dba6b282e1323c3ca8fa76923448
+> popd
 ```
-This will store the data set in a subfolder called `ESC-10`. 
+This will store the data set in a subfolder called `ESC-10`. As the original ESC-10 repository has been merged with the ESC-50 repository, we have to manually checkout the correct commit.
 
 ## Extracting Spectrograms
 First of all, we need to extract spectrograms and some metadata from the raw audio files we downloaded during the previous step. In order to get a general overview of the audio files contained in a data set, we can use the following command.

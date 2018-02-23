@@ -57,6 +57,9 @@ fi
 if [ ${download_data} == "true" ]; then
     echo "Retrieving ESC-10 data set from https://github.com/karoldvl/ESC-10.git"
     git clone "https://github.com/karoldvl/ESC-10.git" ${audio_base}
+    pushd ${audio_base}
+    git checkout 553c8f1743b9dba6b282e1323c3ca8fa76923448
+    popd
 fi
 
 # Check if auDeep has been properly installed
