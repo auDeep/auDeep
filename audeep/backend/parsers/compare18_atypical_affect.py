@@ -109,7 +109,7 @@ class Compare18AtypicalAffectParser(LoggingMixin, Parser):
         metadata = self._metadata()
 
         for file in sorted(self._audio_dir.glob("*.*")):
-            label_nominal = metadata.loc[metadata["file_name"] == file.name]["label"]
+            label_nominal = metadata.loc[metadata["file_name"] == file.name]["emotion"]
 
             # test labels are missing
             if not label_nominal.empty:
