@@ -19,7 +19,7 @@ dependencies = [
     "pysoundfile",
     "scipy",
     "sklearn",
-    "xarray"
+    "xarray==0.10.0"
 ]
 
 try:
