@@ -40,7 +40,7 @@ _DCASE_LABEL_MAP = {
 
 class DCASEParser(LoggingMixin, Parser):
     """
-    Parser for the DCASE 2017 Acoustic Scene Classification development data set.
+    Parser for the DCASE 2018 Acoustic Scene Classification development data set.
     """
 
     def __init__(self, basedir: Path):
@@ -77,7 +77,6 @@ class DCASEParser(LoggingMixin, Parser):
             raise IOError("unable to parse DCASE dataset at {}".format(self._basedir))
         if self._metadata_cache is None:
             self._metadata_cache = pd.read_table(str(self._basedir / "meta.txt"), header=None)
-
         # noinspection PyTypeChecker
         return self._metadata_cache
 
@@ -173,7 +172,7 @@ class DCASEParser(LoggingMixin, Parser):
 
     def can_parse(self) -> bool:
         """
-        Checks whether the data set base directory contains the DCASE 2017 Acoustic Scene Classification development 
+        Checks whether the data set base directory contains the DCASE 2018 Acoustic Scene Classification development 
         data set.
         
         Currently, this method checks for the presence of a meta.txt file in the data set base directory, and the
@@ -182,7 +181,7 @@ class DCASEParser(LoggingMixin, Parser):
         Returns
         -------
         bool
-             True, if the data set base directory contains the DCASE 2017 Acoustic Scene Classification development 
+             True, if the data set base directory contains the DCASE 2018 Acoustic Scene Classification development 
                  data set, False otherwise
         """
         meta_txt_exists = (self._basedir / "meta.txt").exists()
@@ -225,7 +224,6 @@ class DCASEParser(LoggingMixin, Parser):
 
             for fold_metadata in cv_setup:
                 cv_folds.append(Split.TRAIN if filename in fold_metadata.iloc[:, 0].values else Split.VALID)
-
             instance_metadata = _InstanceMetadata(path=self._basedir / filename,
                                                   filename=str(Path(filename).name),
                                                   label_nominal=label_nominal,
@@ -235,3 +233,7 @@ class DCASEParser(LoggingMixin, Parser):
 
             self.log.debug("parsed instance %s: label = %s", filename, label_nominal)
             meta_list.append(instance_metadata)
+
+        return meta_list
+
+
