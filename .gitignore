@@ -3,3 +3,4 @@ auDeep.egg-info
 build/
 /samples/*/
 /compare18/*/
+__pycache__

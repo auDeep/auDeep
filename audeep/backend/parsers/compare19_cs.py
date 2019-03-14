@@ -108,11 +108,11 @@ class Compare19CSParser(LoggingMixin, Parser):
         inverse_label_map = dict(map(reversed, self.label_map.items()))
 
         for file in sorted(self._audio_dir.glob("*.*")):
-            label_numeric = float(metadata.loc[metadata["file_name"] == file.name]["label"])
+            label = metadata.loc[metadata["file_name"] == file.name]["label"]
 
             # test labels are missing and parsed as NaN
-            if not math.isnan(label_numeric):
-                label_numeric = int(label_numeric)
+            if all(l != '?' for l in label):
+                label_numeric = int(label)
             else:
                 label_numeric = None
 
