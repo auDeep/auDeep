@@ -82,7 +82,7 @@ where `auDeep` is the name of the project root directory containing the `setup.p
 Once installation is complete, the TensorFlow installation within the virtualenv needs to be patched, in order to fix a bug that has not yet been resolved in the official repositories. The required changes are provided as a GNU patch file at `patches/fix_import_bug.patch` below the project root directory. To apply the patch the GNU patch utility is required, which should be installed by default on Linux systems. On Windows, it can be obtained, for example, through `cygwin`. Please note that you have to manually select the `patch` package during installation of `cygwin`, as it is not installed by default.
 ```
 Linux:
-> patch audeep_virtualenv/lib/python3.5/site-packages/tensorflow/python/framework/meta_graph.py auDeep/patches/fix_import_bug.patch
+> patch audeep_virtualenv/lib/*/site-packages/tensorflow/python/framework/meta_graph.py auDeep/patches/fix_import_bug.patch
 
 Windows:
 > patch .\audeep_virtualenv\Lib\site-packages\tensorflow\python\framework\meta_graph.py .\auDeep\patches\fix_import_bug.patch
