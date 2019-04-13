@@ -27,8 +27,8 @@ The minimal requirements to install auDeep are listed below.
 ### Additional Requirements for GPU Support
 The `setup.py` script automatically checks if a compatible CUDA version is available on the system. If GPU support is desired, make sure that the following dependencies are installed **before** installing auDeep.
 
-- CUDA Toolkit 8.0
-- cuDNN 5.1 (optional)
+- CUDA Toolkit 10.0
+- cuDNN 7.4.1
 
 By default, the CUDA libraries are required to be available on the system path (which should be the case after a standard installation). If, for some reason, the `setup.py` script fails to detect the correct CUDA version, consider manually installing `tensorflow-gpu` 1.1.0 prior to installing auDeep.
 
@@ -42,7 +42,7 @@ These Python packages are installed automatically during setup by `pip`, and are
 - pandas
 - scipy
 - sklearn
-- tensorflow or tensorflow-gpu 1.1.0
+- tensorflow or tensorflow-gpu 1.13.0
 - xarray
 
 ## Installing in a virtualenv
@@ -79,14 +79,6 @@ If everything went well, you should see `(audeep_virtualenv)` prepended to the c
 ```
 where `auDeep` is the name of the project root directory containing the `setup.py` file. This will fetch all required depencendies and install them in the virtualenv.
 
-Once installation is complete, the TensorFlow installation within the virtualenv needs to be patched, in order to fix a bug that has not yet been resolved in the official repositories. The required changes are provided as a GNU patch file at `patches/fix_import_bug.patch` below the project root directory. To apply the patch the GNU patch utility is required, which should be installed by default on Linux systems. On Windows, it can be obtained, for example, through `cygwin`. Please note that you have to manually select the `patch` package during installation of `cygwin`, as it is not installed by default.
-```
-Linux:
-> patch audeep_virtualenv/lib/python3.5/site-packages/tensorflow/python/framework/meta_graph.py auDeep/patches/fix_import_bug.patch
-
-Windows:
-> patch .\audeep_virtualenv\Lib\site-packages\tensorflow\python\framework\meta_graph.py .\auDeep\patches\fix_import_bug.patch
-```
 This completes installation, and the toolkit CLI can be accessed through the `audeep` binary.
 ```
 > audeep --version

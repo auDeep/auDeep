@@ -321,11 +321,10 @@ class BaseFeatureLearningWrapper(LoggingMixin):
             The Tensorflow graph deserialized from the specified file, with any unbound inputs bound to the respective
             tensors defined in the `input_map` parameter
         """
-        input_map = {"$unbound_inputs_%s" % k: input_map[k] for k in input_map}
+        input_map = {k: input_map[k] for k in input_map}
 
         saver = tf.train.import_meta_graph(str(model_filename.with_suffix(".meta")),
-                                           clear_devices=True,
-                                           import_scope="model",
+                                           clear_devices=True, import_scope=None,
                                            input_map=input_map)
 
         return GraphWrapper(graph=tf.get_default_graph(),
@@ -352,16 +351,18 @@ class BaseFeatureLearningWrapper(LoggingMixin):
         kwargs: keyword arguments
             Additional keyword arguments specifying the model architecture
         """
-        with tf.Graph().as_default():
+        with tf.Graph().as_default() as g:
+
+
             tf_inputs = tf.placeholder(name="inputs",
                                        shape=[feature_shape[0], None, feature_shape[1]],
                                        dtype=tf.float32)
 
             self._create_model(tf_inputs, **kwargs)
 
+
             tf.train.export_meta_graph(filename=str(model_filename.with_suffix(".meta")),
-                                       export_scope="model",
-                                       clear_devices=True)
+                                       clear_devices=True, export_scope=None)
 
     def train_model(self,
                     model_filename: Path,

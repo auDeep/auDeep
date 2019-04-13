@@ -5,7 +5,7 @@ from subprocess import CalledProcessError, check_output
 from setuptools import setup, find_packages
 
 PROJECT = "auDeep"
-VERSION = "0.9.1"
+VERSION = "0.9.2"
 LICENSE = "GPLv3+"
 AUTHOR = "Michael Freitag"
 AUTHOR_EMAIL = "freitagm@fim.uni-passau.de"
@@ -42,7 +42,7 @@ if not tensorflow_found:
             major = int(version_string.group("major"))
             minor = int(version_string.group("minor"))
 
-            if major != 8:
+            if major != 10 or minor != 0:
                 print("detected incompatible CUDA version %d.%d" % (major, minor))
             else:
                 print("detected compatible CUDA version %d.%d" % (major, minor))
@@ -56,9 +56,9 @@ if not tensorflow_found:
         print("error during CUDA detection: %s", e)
 
     if use_gpu:
-        dependencies.append("tensorflow-gpu==1.1.0")
+        dependencies.append("tensorflow-gpu==1.13.1")
     else:
-        dependencies.append("tensorflow==1.1.0")
+        dependencies.append("tensorflow==1.13.1")
 else:
     print("tensorflow already installed, skipping CUDA detection")
 
