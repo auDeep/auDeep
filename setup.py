@@ -14,7 +14,7 @@ dependencies = [
     "cliff",
     "liac-arff",
     "matplotlib",
-    "netCDF4",
+    "netCDF4==1.4.2",
     "pandas",
     "pysoundfile",
     "scipy",
