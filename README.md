@@ -1,6 +1,6 @@
 **auDeep** is a Python toolkit for unsupervised feature learning with deep neural networks (DNNs). Currently, the main focus of this project is feature extraction from audio data with deep recurrent autoencoders. However, the core feature learning algorithms are not limited to audio data. Furthermore, we plan on implementing additional DNN-based feature learning approaches.
 
-**(c) 2019 Shahin Amiriparian, Michael Freitag, Maurice Gerczuk, Sergey Pugachevskiy, Björn Schuller: Universität Augsburg**
+**(c) 2019-2020 Shahin Amiriparian, Michael Freitag, Maurice Gerczuk, Sergey Pugachevskiy, Björn Schuller: Universität Augsburg**
 
 **(c) 2017-2018 Michael Freitag, Shahin Amiriparian, Maurice Gerczuk, Sergey Pugachevskiy, Nicholas Cummins, Björn Schuller: Universität Passau**
 Published under GPLv3, see the LICENSE.md file for details.
@@ -15,12 +15,17 @@ If you use auDeep or any code from auDeep in your research work, you are kindly 
 > M. Freitag, S. Amiriparian, S. Pugachevskiy, N. Cummins, and B. Schuller, “auDeep: Unsupervised Learning of Representations from Audio with Deep Recurrent Neural Networks,” Journal of Machine Learning Research, vol. 18, no. 173, pp. 1–5, 2018
 
 # Installation
-This project ships with a `setup.py` file which allows for installation and automatic dependency resolution through `pip`. We strongly recommend installing the project in its own Python `virtualenv`, since the Tensorflow source code needs to be patched in order to fix a bug that has not yet been resolved in the official repositories (see [below](#installing-in-a-virtualenv)). 
+You can install auDeep directly via pip:
+```bash
+pip install audeep
+```
+
+This project also ships with a `setup.py` file which allows for installation and automatic dependency resolution through `pip`. We strongly recommend installing the project in its own Python `virtualenv` (see [below](#installing-in-a-virtualenv)). 
 
 ## Requirements
 The minimal requirements to install auDeep are listed below.
 
-- Python 3.5
+- Python 3.7
 - TkInter (`python3-tk` package on Ubuntu, selectable during Python install on Windows) if the interactive Matplotlib backend is used. Check if TkInter is installed and configured correctly with `python3 -c "import _tkinter; import tkinter; tkinter._test()"`. A small window with two buttons should appear. 
 - virtualenv (`pip3 install virtualenv`)
 
@@ -28,9 +33,9 @@ The minimal requirements to install auDeep are listed below.
 The `setup.py` script automatically checks if a compatible CUDA version is available on the system. If GPU support is desired, make sure that the following dependencies are installed **before** installing auDeep.
 
 - CUDA Toolkit 10.0
-- cuDNN 7.4.1
+- cuDNN 7.6.5
 
-By default, the CUDA libraries are required to be available on the system path (which should be the case after a standard installation). If, for some reason, the `setup.py` script fails to detect the correct CUDA version, consider manually installing `tensorflow-gpu` 1.1.0 prior to installing auDeep.
+By default, the CUDA libraries are required to be available on the system path (which should be the case after a standard installation). If, for some reason, the `setup.py` script fails to detect the correct CUDA version, consider manually installing `tensorflow-gpu` 1.15.2 prior to installing auDeep.
 
 ### Python Dependencies (installed automatically during setup)
 These Python packages are installed automatically during setup by `pip`, and are just listed for completeness.
@@ -42,7 +47,7 @@ These Python packages are installed automatically during setup by `pip`, and are
 - pandas
 - scipy
 - sklearn
-- tensorflow or tensorflow-gpu 1.13.0
+- tensorflow 1.15.2
 - xarray
 
 ## Installing in a virtualenv

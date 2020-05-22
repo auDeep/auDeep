@@ -20,6 +20,9 @@ import argparse
 import logging
 import os
 import sys
+import pkg_resources
+import warnings
+warnings.simplefilter("ignore", category=FutureWarning)
 
 from cliff.app import App
 from cliff.commandmanager import CommandManager
@@ -62,7 +65,7 @@ class AuDeepApp(App):
     def __init__(self):
         super(AuDeepApp, self).__init__(
             description="Deep Representation Learning Toolkit for Acoustic Data",
-            version="0.9.1",
+            version=pkg_resources.require("audeep")[0].version,
             command_manager=CommandManager("audeep.commands"),
             deferred_help=True
         )
@@ -73,7 +76,7 @@ class AuDeepApp(App):
 
         parser = super().build_option_parser(description, version, argparse_kwargs=argparse_kwargs)
 
-        version_str = "%(prog)s {0}  Copyright (C) 2017-2018 Michael Freitag, Shahin Amiriparian, Sergey Pugachevskiy, Nicholas Cummins, " \
+        version_str = "%(prog)s {0}  Copyright (C) 2017-2020 Michael Freitag, Shahin Amiriparian, Maurice Gerczuk, Sergey Pugachevskiy, Nicholas Cummins, " \
                       "Bjoern Schuller\n" \
                       "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n" \
                       "This is free software: you are free to change and redistribute it.\n" \
@@ -95,7 +98,7 @@ class AuDeepApp(App):
 
         import tensorflow as tf
 
-        tf.logging.set_verbosity(tf.logging.FATAL)
+        tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.FATAL)
 
         self.LOG.debug("initializing app")
 

@@ -207,7 +207,7 @@ class ExtractSpectrograms(LoggingMixin, Command):
             ax.hist(sxx_full.flatten(),
                     range=(range_min, range_max),
                     bins=100,
-                    normed=True,
+                    density=True,
                     histtype="stepfilled")
 
             plt.tight_layout()

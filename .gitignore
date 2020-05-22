@@ -4,3 +4,5 @@ build/
 /samples/*/
 /compare18/*/
 __pycache__
+.vscode
+dist
