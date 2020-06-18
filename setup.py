@@ -5,10 +5,10 @@ from subprocess import CalledProcessError, check_output
 from setuptools import setup, find_packages
 
 PROJECT = "auDeep"
-VERSION = "0.9.3"
+VERSION = "0.9.4"
 LICENSE = "GPLv3+"
-AUTHOR = "Michael Freitag"
-AUTHOR_EMAIL = "freitagm@fim.uni-passau.de"
+AUTHOR = "Maurice Gerczuk"
+AUTHOR_EMAIL = "maurice.gerczuk@informatik.uni-augsburg.de"
 URL = "https://github.com/auDeep/auDeep"
 
 with open("DESCRIPTION.md", "r") as fh:
