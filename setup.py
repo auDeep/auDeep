@@ -15,6 +15,7 @@ with open("DESCRIPTION.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
     
 dependencies = [
+<<<<<<< HEAD
     "cliff~=3.3.0",
     "liac-arff~=2.4.0",
     "matplotlib~=3.2.2",
@@ -23,6 +24,16 @@ dependencies = [
     "pysoundfile~=0.9.0.post1",
     "scipy~=1.4.1",
     "scikit-learn~=0.23.1",
+=======
+    "cliff>=3.3",
+    "liac-arff>=2.4",
+    "matplotlib>=3.2",
+    "netCDF4==1.4.2",
+    "pandas>=1.0",
+    "pysoundfile>=0.9",
+    "scipy>=1.4",
+    "scikit-learn>=0.23",
+>>>>>>> 4974f4e... Pin dependencies.
     "xarray==0.10.0",
     "tensorflow-gpu>=1.15.2,<2"
 ]
