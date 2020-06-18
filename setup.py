@@ -15,14 +15,14 @@ with open("DESCRIPTION.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
     
 dependencies = [
-    "cliff",
-    "liac-arff",
-    "matplotlib",
+    "cliff~=3.3.0",
+    "liac-arff~=2.4.0",
+    "matplotlib~=3.2.2",
     "netCDF4==1.4.2",
-    "pandas",
-    "pysoundfile",
-    "scipy",
-    "scikit-learn",
+    "pandas~=1.0.2",
+    "pysoundfile~=0.9.0.post1",
+    "scipy~=1.4.1",
+    "scikit-learn~=0.23.1",
     "xarray==0.10.0",
     "tensorflow-gpu>=1.15.2,<2"
 ]
