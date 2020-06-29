@@ -60,7 +60,6 @@ class InspectRaw(LoggingMixin, Command):
             self.log.info(f'Using custom external parser: {parsed_args.parser}')
             path, class_name = parsed_args.parser.split(':')
             module_name = f'audeep.backend.parsers.custom.{splitext(basename(path))[0]}'
-            print(module_name)
             spec = importlib.util.spec_from_file_location(module_name, path)
             foo = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(foo)
