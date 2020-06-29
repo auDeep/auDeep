@@ -19,6 +19,7 @@
 import importlib
 import math
 from pathlib import Path
+from os.path import splitext, basename
 
 import numpy as np
 from cliff.command import Command
@@ -55,8 +56,18 @@ class InspectRaw(LoggingMixin, Command):
         return parser
 
     def take_action(self, parsed_args):
-        module_name, class_name = parsed_args.parser.rsplit(".", 1)
-        parser_class = getattr(importlib.import_module(module_name), class_name)
+        if ":" in parsed_args.parser:
+            self.log.info(f'Using custom external parser: {parsed_args.parser}')
+            path, class_name = parsed_args.parser.split(':')
+            module_name = f'audeep.backend.parsers.custom.{splitext(basename(path))[0]}'
+            print(module_name)
+            spec = importlib.util.spec_from_file_location(module_name, path)
+            foo = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(foo)
+            parser_class = getattr(foo, class_name)
+        else:
+            module_name, class_name = parsed_args.parser.rsplit(".", 1)
+            parser_class = getattr(importlib.import_module(module_name), class_name)
 
         if not issubclass(parser_class, Parser):
             raise ValueError("specified parser does not inherit audeep.backend.parsers.Parser")
