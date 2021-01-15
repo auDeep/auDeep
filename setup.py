@@ -30,7 +30,7 @@ dependencies = [
     "scikit-learn>=0.23",
     "xarray==0.10.0",
 ]
-if sys.platform.startwith("darwin"):
+if sys.platform.startswith("darwin"):
     dependencies.append("tensorflow>=1.15.2,<2")
 else:
     dependencies.append("tensorflow-gpu>=1.15.2,<2")
