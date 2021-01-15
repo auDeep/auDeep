@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import re
+import sys
 from subprocess import CalledProcessError, check_output
 
 from setuptools import setup, find_packages
@@ -28,8 +29,11 @@ dependencies = [
     "scipy>=1.4",
     "scikit-learn>=0.23",
     "xarray==0.10.0",
-    "tensorflow-gpu>=1.15.2,<2"
 ]
+if sys.platform.startwith("darwin"):
+    dependencies.append("tensorflow>=1.15.2,<2")
+else:
+    dependencies.append("tensorflow-gpu>=1.15.2,<2")
 
 setup(
     name=PROJECT,
