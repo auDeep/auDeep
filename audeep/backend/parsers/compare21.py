@@ -41,7 +41,7 @@ class Compare21Parser(LoggingMixin, Parser):
 
     def _metadata(self) -> pd.DataFrame:
         if not self.can_parse():
-            raise IOError("unable to parse the ComParE 2020 Mask dataset at {}".format(self._basedir))
+            raise IOError("unable to parse the ComParE 2021 dataset at {}".format(self._basedir))
         if self._metadata_cache is None:
             metadata_file_train = self._basedir / "lab" / "train.csv"
             metadata_file_devel = self._basedir / "lab" / "devel.csv"
