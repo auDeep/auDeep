@@ -76,7 +76,7 @@ class AuDeepApp(App):
 
         parser = super().build_option_parser(description, version, argparse_kwargs=argparse_kwargs)
 
-        version_str = "%(prog)s {0}  Copyright (C) 2017-2020 Michael Freitag, Shahin Amiriparian, Maurice Gerczuk, Sergey Pugachevskiy, Nicholas Cummins, " \
+        version_str = "%(prog)s {0}  Copyright (C) 2017-2021 Michael Freitag, Shahin Amiriparian, Maurice Gerczuk, Sergey Pugachevskiy, Nicholas Cummins, " \
                       "Bjoern Schuller\n" \
                       "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\n" \
                       "This is free software: you are free to change and redistribute it.\n" \

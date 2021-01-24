@@ -1,4 +1,4 @@
-# Copyright (C) 2020 Shahin Amiriparian, Michael Freitag, Maurice Gerczuk, Björn Schuller
+# Copyright (C) 2021 Shahin Amiriparian, Michael Freitag, Maurice Gerczuk, Björn Schuller
 #
 # This file is part of auDeep.
 #
@@ -41,7 +41,7 @@ class Compare21Parser(LoggingMixin, Parser):
 
     def _metadata(self) -> pd.DataFrame:
         if not self.can_parse():
-            raise IOError("unable to parse the ComParE 2021 dataset at {}".format(self._basedir))
+            raise IOError("unable to parse the ComParE 2020 Mask dataset at {}".format(self._basedir))
         if self._metadata_cache is None:
             metadata_file_train = self._basedir / "lab" / "train.csv"
             metadata_file_devel = self._basedir / "lab" / "devel.csv"
@@ -77,7 +77,7 @@ class Compare21Parser(LoggingMixin, Parser):
         if not self.can_parse():
             raise IOError("inable to parse the ComParE 2021 dataset at {}".format(self._basedir))
         metadata_cache = self._metadata()
-        labels = sorted(set(metadata_cache.label.values))
+        labels = sorted(map(str, set(metadata_cache.label.values)))
         if "?" in labels:
             labels.remove("?")
         label_map = {label: i for i, label in enumerate(labels)}
@@ -111,7 +111,7 @@ class Compare21Parser(LoggingMixin, Parser):
 
             # test labels are '?'
             if all(l != '?' for l in label_nominal):
-                label_nominal = label_nominal.iloc[0]
+                label_nominal = str(label_nominal.iloc[0])
             else:
                 label_nominal = None
 

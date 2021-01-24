@@ -6,7 +6,7 @@ from subprocess import CalledProcessError, check_output
 from setuptools import setup, find_packages
 
 PROJECT = "auDeep"
-VERSION = "0.9.4"
+VERSION = "0.9.6"
 LICENSE = "GPLv3+"
 AUTHOR = "Maurice Gerczuk"
 AUTHOR_EMAIL = "maurice.gerczuk@informatik.uni-augsburg.de"
@@ -16,21 +16,20 @@ with open("DESCRIPTION.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
     
 dependencies = [
-    "cliff>=3.3",
+    "cliff>=3.3, <3.4",
     "liac-arff>=2.4",
     "matplotlib>=3.2",
     "netCDF4==1.4.2",
-    "cliff>=3.3",
     "liac-arff>=2.4",
     "matplotlib>=3.2",
     "netCDF4==1.4.2",
-    "pandas>=1.0",
+    "pandas>=1.0, <1.2",
     "pysoundfile>=0.9",
     "scipy>=1.4",
     "scikit-learn>=0.23",
     "xarray==0.10.0",
 ]
-if sys.platform.startwith("darwin"):
+if sys.platform.startswith("darwin"):
     dependencies.append("tensorflow>=1.15.2,<2")
 else:
     dependencies.append("tensorflow-gpu>=1.15.2,<2")
