@@ -6,7 +6,7 @@ from subprocess import CalledProcessError, check_output
 from setuptools import setup, find_packages
 
 PROJECT = "auDeep"
-VERSION = "0.9.6"
+VERSION = "0.9.6a1"
 LICENSE = "GPLv3+"
 AUTHOR = "Maurice Gerczuk"
 AUTHOR_EMAIL = "maurice.gerczuk@informatik.uni-augsburg.de"
